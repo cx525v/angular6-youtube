@@ -1,0 +1,136 @@
+npm install @ngrx/store --save
+
+//action/reducers.ts
+export function reducer(action, type) {
+ switch(action) {
+   case: ADD_ONE_TO_STATE_VARIABLE_X:
+    return state.map(elem => {
+        if(elem === x) {
+           state[elem]++;
+           return elem; 
+        }     
+   });
+ }
+}
+
+//action/index.ts
+
+import {reducer, appReducerState} from './appReducer'
+import {ActionReducerMap} from '@ngrx/store';
+
+
+interface AppState {
+  appReducer:
+}
+export const reducers: ActionReducerMap<AppState> = {
+  appReducers: reducer
+}
+
+//app.module.ts
+import {StoreModule} from '@ngrx/store'
+import {reducers} from './store/reducers'
+
+imports: [
+...
+StoreModule.forRoot(reduces, {
+  initialState: {
+   greetingMessage: "Hello Guest",
+   logout: true
+ }
+})
+...
+//action/appActions.ts
+export const ACTION_LOGOUT ='LOGOUT'
+export const ACTION_LOGIN ='LOGIN'
+
+//action/appReducer.ts
+
+import {ACTION_LOGOUT, ACTION_LOGIN:} from '../actions/appACtions'
+
+export interface appReducerState {
+  login: boolean,
+  user?: string
+}
+const initialState = {
+  login: false,
+}
+export function reducer(state = initalState, action) {
+  switch(action.type) {
+    case ACTION_LOGOUT:
+       return {
+         ...state,
+         login: false,
+         user: null
+       }
+    case ACTION_LOGIN:
+       return {
+         ...state,
+         login: true,
+         user: action.payload
+       }
+  }
+  return state
+}
+
+
+//user.service.ts
+constructor(private http:HttpClient, private store:Store<any>){}
+getAllState() {
+  return this.store.select('appReducer');
+}
+updateState(obj) {
+ this.store.select('appReducer').dispatch({
+   type: obj.action,
+   payload: obj.payload
+  })
+}
+
+//header.component.ts
+greetMessage="Hello Guest"
+logout = true
+constructor(private user: UserService) {}
+ngOnInit() {
+  this.user.getAllState().subscribe(state => {
+   console.log(state);
+   this.greetMessage = state.login? 'Hello ' + state.user: 'Guest'
+ });
+
+}
+
+
+//login.component.ts
+
+loginUser(event) {
+  event.preventDefault();
+  const target = event.target;
+  const username = target.querySelector('#username').value;
+  const password = target.querySelector('#password').value;
+  this.Auth.getUserDetails(username,password).subscribe(data => {
+    if(data.success) {
+       this.router.navigate(['dashboard']);
+       this.Auth.setLogginIn(true);
+       this.user.updateState({
+         action: ACTION_LOGIN,
+         payload:username
+       });
+    } else {
+      window.alert(data.message);
+    }
+  });
+
+}
+
+//logout.component.ts
+ngOnInit() {
+  this.user.logout().subscribe(data => {
+   if(data.success) {
+     this.route.navigate(['']);
+     this.auth.setLoggedIn(false);
+     this.user.updateState({
+      action: ACTION_LOGOUT  
+    }) else {
+      window.alert('some problem');
+    }
+   }
+  })
+}
